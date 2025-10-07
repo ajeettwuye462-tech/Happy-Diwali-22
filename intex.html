@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Font Link for a stylish font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+    <title>Happy Diwali</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: sans-serif;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .diwali-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .input-container {
+            margin-top: 20px;
+        }
+
+        #nameInput {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 80%;
+            max-width: 300px;
+            font-size: 16px;
+        }
+
+        #whatsappShareBtn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #25d366;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            text-decoration: none;
+        }
+
+        .greeting-container {
+            margin-top: 30px;
+        }
+
+        /* Updated Styles for "Happy Diwali" Text */
+        .happy-diwali {
+            font-family: 'Lobster', cursive; /* 1. Stylish Font */
+            font-size: 4.5em; /* Slightly increased size */
+            font-weight: bold;
+            -webkit-text-stroke: 2px black; /* 2. Black color outline */
+            text-stroke: 2px black;
+            animation: color-change 5s linear infinite; /* 3. Auto changing color animation */
+        }
+
+        /* Keyframes for the color changing animation */
+        @keyframes color-change {
+            0% { color: #ff0000; }
+            15% { color: #ff7f00; }
+            30% { color: #ffff00; }
+            45% { color: #00ff00; }
+            60% { color: #0000ff; }
+            75% { color: #4b0082; }
+            90% { color: #9400d3; }
+            100% { color: #ff0000; }
+        }
+
+        .sender-name {
+            font-size: 1.5em;
+            margin-top: 10px;
+        }
+
+        .fire-bubble-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="pooja.gif" alt="Pooja Animation" class="diwali-image">
+
+        <div class="greeting-container">
+            <h1 class="happy-diwali">Happy Diwali</h1>
+            <p class="sender-name" id="senderName"></p>
+        </div>
+
+        <div class="input-container" id="inputSection">
+            <input type="text" id="nameInput" placeholder="अपना नाम लिखें">
+            <a id="whatsappShareBtn" href="#">WhatsApp पर शेयर करें</a>
+        </div>
+    </div>
+
+    <canvas class="fire-bubble-container" id="fireBubbleCanvas"></canvas>
+
+    <script>
+        const nameInput = document.getElementById('nameInput');
+        const whatsappShareBtn = document.getElementById('whatsappShareBtn');
+        const senderName = document.getElementById('senderName');
+        const inputSection = document.getElementById('inputSection');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const fromName = urlParams.get('name');
+
+        if (fromName) {
+            senderName.textContent = `~ ${decodeURIComponent(fromName)} की तरफ से`;
+            inputSection.style.display = 'none';
+        }
+
+        whatsappShareBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            const yourName = nameInput.value.trim();
+            if (yourName) {
+                const generatedLink = `${window.location.origin}${window.location.pathname}?name=${encodeURIComponent(yourName)}`;
+                const shareMessage = `आपको ${yourName} की तरफ से दिवाली की हार्दिक शुभकामनाएँ! ✨ अपनी शुभकामनाएँ भेजने के लिए इस लिंक पर क्लिक करें: ${generatedLink}`;
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareMessage)}`;
+                
+                window.open(whatsappUrl, '_blank');
+            } else {
+                alert('कृपया अपना नाम लिखें।');
+            }
+        });
+
+        const canvas = document.getElementById('fireBubbleCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+
+        function Particle(x, y, radius, color, velocity) {
+            this.x = x;
+            this.y = y;
+            this.radius = radius;
+            this.color = color;
+            this.velocity = velocity;
+            this.alpha = 1;
+
+            this.draw = function() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            };
+
+            this.update = function() {
+                this.draw();
+                this.velocity.x *= 0.99;
+                this.velocity.y *= 0.99;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= 0.01;
+            };
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach((particle, index) => {
+                if (particle.alpha > 0) {
+                    particle.update();
+                } else {
+                    particles.splice(index, 1);
+                }
+            });
+        }
+
+        function createFireBubble(e) {
+            const x = e.clientX || e.touches[0].clientX;
+            const y = e.clientY || e.touches[0].clientY;
+            const particleCount = 30;
+            const angleIncrement = (Math.PI * 2) / particleCount;
+
+            for (let i = 0; i < particleCount; i++) {
+                const radius = Math.random() * 5 + 2;
+                const color = `hsl(${Math.random() * 50 + 10}, 100%, 50%)`;
+                const velocity = {
+                    x: Math.cos(angleIncrement * i) * Math.random() * 6,
+                    y: Math.sin(angleIncrement * i) * Math.random() * 6
+                };
+                particles.push(new Particle(x, y, radius, color, velocity));
+            }
+        }
+
+        window.addEventListener('click', createFireBubble);
+        window.addEventListener('touchstart', createFireBubble);
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
+<script type="text/javascript">
+	atOptions = {
+		'key' : '95d0d3d8418bc0f68ab5e736f91aa2d8',
+		'format' : 'iframe',
+		'height' : 250,
+		'width' : 300,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/95d0d3d8418bc0f68ab5e736f91aa2d8/invoke.js"></script>
